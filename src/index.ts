@@ -1,3 +1,5 @@
 export * from './math/index'
 export * from './date/index'
 export * from './storage/index'
+export * from './url/index'
+export * from './data/index'
