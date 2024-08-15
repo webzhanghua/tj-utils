@@ -222,3 +222,55 @@ export const repeatedRowCalculationHandle = (
   }
   return updatedArr
 }
+
+interface ConvertedObject {
+  [key: string]: any
+}
+/**
+ * 转换对象字段
+ *
+ * @param obj 要转换的对象
+ * @param keysMap 键值对映射关系，使用元组数组表示
+ * @returns 转换后的对象
+ */
+export function convertFields(
+  obj: ConvertedObject,
+  keysMap: [string, string][] // 使用元组数组表示键值对映射关系
+): ConvertedObject {
+  const newObj: ConvertedObject = { ...obj }
+  // 使用映射数组，确保键之间正确映射
+  for (let [key1, key2] of keysMap) {
+    if (!key1 || !key2) continue
+    // 如果源对象中有对应的键，则进行转换，否则赋值为null
+    newObj[key2] = obj[key1] ?? null
+  }
+  return newObj
+}
+/**
+ * 对数组中的字段进行转换
+ *
+ * @param arrs 转换对象数组
+ * @param keysMap 字段映射关系数组
+ * @param subKey 树形结构数据递归字段名，为空表示为一层数组
+ * @returns 转换后的对象数组
+ */
+export function convertFieldsArray(
+  arrs: ConvertedObject[],
+  keysMap: [string, string][],
+  subKey?: string
+): ConvertedObject[] {
+  // 重命名 _run 为更明确的名称，如 convertWithSubKey
+  function convertWithSubKey(node: ConvertedObject): ConvertedObject {
+    // 如果存在 subKey，则先处理子数组
+    if (subKey && Array.isArray(node[subKey]) && node[subKey].length > 0) {
+      node[subKey] = node[subKey].map((child: ConvertedObject) =>
+        convertWithSubKey(child)
+      )
+    }
+    // 转换当前对象的字段
+    return convertFields(node, keysMap)
+  }
+
+  // 直接调用改进后的函数，逻辑更加清晰
+  return arrs.map(item => convertWithSubKey(item))
+}
